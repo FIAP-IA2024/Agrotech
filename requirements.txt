@@ -1,0 +1,5 @@
+cx-Oracle
+matplotlib
+numpy
+opencv-python
+scipy
