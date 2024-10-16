@@ -119,13 +119,13 @@ Testa a conexão com o banco de dados Oracle, realizando uma consulta simples pa
  Requisitos do Sistema
 
 - Python 3.6+
-- Bibliotecas Python: `numpy`, `opencv-python`, `matplotlib`, `cx_Oracle` ou `oracledb`, `scipy`
+- Bibliotecas Python: `numpy`, `opencv-python`, `matplotlib`, `cx_Oracle` ou `oracledb`, `scipy` e `pandas`
 - Oracle Instant Client: Necessário para conexão ao banco de dados Oracle
 
  Instruções de Uso
 
 1. Certifique-se de que todas as bibliotecas estão instaladas.
-2. Configure o Oracle Instant Client se desejar salvar os dados no banco de dados Oracle.
+2. Configure os parametros de conexão do banco de dados no arquivo conexao.txt no diretorio raiz da aplicação.
 3. Execute `main.py` para iniciar o aplicativo e siga as instruções no menu.
 
 Se precisar de mais assistência ou encontrar problemas, consulte os documentos das bibliotecas ou entre em contato com o desenvolvedor responsável.
