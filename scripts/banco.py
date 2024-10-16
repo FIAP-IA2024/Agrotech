@@ -1,7 +1,8 @@
-import cx_Oracle
-import traceback
 import sys
+import cx_Oracle
 import numpy as np
+import traceback
+import pandas as pd
 
 def ler_arquivo_conexao():
     """
@@ -71,6 +72,8 @@ def verificar_e_criar_tabela(cursor):
 def salvar_dados_banco(conexao, ndvi, problemas, pragas):
     """
     Salva os dados de monitoramento da lavoura no banco de dados Oracle.
+    Além disso, armazena os dados em estruturas de dados Python: lista, tupla, dicionário e tabela de memória (DataFrame do pandas).
+    
     :param conexao: Conexão ativa ao banco de dados
     :param ndvi: Array contendo os valores de NDVI
     :param problemas: Máscara binária indicando áreas problemáticas
@@ -82,14 +85,43 @@ def salvar_dados_banco(conexao, ndvi, problemas, pragas):
         # Verifica se a tabela existe e a cria se necessário
         verificar_e_criar_tabela(cursor)
         
+        # Calcula os valores a serem inseridos
+        ndvi_medio = float(np.mean(ndvi))
+        problemas_totais = int(np.sum(problemas))
+        pragas_totais = int(np.sum(pragas))
+        
         # Inserção de dados na tabela 'monitoramento'
         cursor.execute("""
             INSERT INTO monitoramento (ndvi_medio, problemas_totais, pragas_totais)
             VALUES (:1, :2, :3)
-        """, (float(np.mean(ndvi)), int(np.sum(problemas)), int(np.sum(pragas))))
+        """, (ndvi_medio, problemas_totais, pragas_totais))
         
         conexao.commit()
         print("Dados salvos no banco de dados com sucesso.")
+        
+        # --- Criação de Estruturas de Dados ---
+        
+        # 1. Lista
+        dados_lista = [ndvi_medio, problemas_totais, pragas_totais]
+        print(f"Dados armazenados em lista: {dados_lista}")
+        
+        # 2. Tupla
+        dados_tupla = (ndvi_medio, problemas_totais, pragas_totais)
+        print(f"Dados armazenados em tupla: {dados_tupla}")
+        
+        # 3. Dicionário
+        dados_dicionario = {
+            'ndvi_medio': ndvi_medio,
+            'problemas_totais': problemas_totais,
+            'pragas_totais': pragas_totais
+        }
+        print(f"Dados armazenados em dicionário: {dados_dicionario}")
+        
+        # 4. Tabela de Memória (DataFrame do pandas)
+        dados_dataframe = pd.DataFrame([dados_dicionario])
+        print("Dados armazenados em tabela de memória (DataFrame):")
+        print(dados_dataframe)
+        
     except cx_Oracle.DatabaseError as e:
         print(f"Erro ao salvar os dados no banco de dados Oracle: {e}")
         traceback.print_exc()
@@ -114,3 +146,26 @@ def testar_conexao_banco():
     finally:
         if 'conexao' in locals() and conexao:
             conexao.close()
+
+def main():
+    """
+    Função principal para testar a conexão e salvar dados de exemplo.
+    """
+    testar_conexao_banco()
+    
+    # Dados de exemplo
+    ndvi = np.array([0.2, 0.3, 0.5, 0.4, 0.6])
+    problemas = np.array([0, 1, 0, 1, 0])
+    pragas = np.array([1, 0, 0, 1, 1])
+    
+    try:
+        conexao = conectar_banco()
+        salvar_dados_banco(conexao, ndvi, problemas, pragas)
+    except Exception as e:
+        print(f"Ocorreu um erro: {e}")
+    finally:
+        if 'conexao' in locals() and conexao:
+            conexao.close()
+
+if __name__ == "__main__":
+    main()
