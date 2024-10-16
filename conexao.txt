@@ -1,0 +1,5 @@
+host=oracle.fiap.com.br
+porta=1521
+usuario=RMXXXXXX
+senha=XXXXXX
+sid=ORCL
