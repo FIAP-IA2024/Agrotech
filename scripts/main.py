@@ -2,6 +2,7 @@
 # main.py - Programa principal que gerencia o fluxo do sistema de monitoramento da lavoura
 import numpy as np
 import cv2
+import cx_Oracle
 from monitoramento import carregar_imagem_multiespectral, calcular_ndvi, detectar_problemas, detectar_problemas_avancado, identificar_pragas
 from banco import conectar_banco, salvar_dados_banco, testar_conexao_banco
 from visualizacao import gerar_mapa_ndvi, gerar_histograma_ndvi, plotar_imagem_multiespectral, plotar_areas_problemas

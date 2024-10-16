@@ -1,6 +1,7 @@
-# banco.py - Módulo responsável pela conexão e operações com o banco de dados Oracle
+import sys
 import cx_Oracle
 import numpy as np
+import traceback
 
 def conectar_banco():
     """
@@ -8,12 +9,43 @@ def conectar_banco():
     :return: Conexão ativa ao banco de dados
     """
     try:
-        dsn_tns = cx_Oracle.makedsn('host', 'port', service_name='service_name')
-        conexao = cx_Oracle.connect(user='usuario', password='senha', dsn=dsn_tns)
+        dsn_tns = cx_Oracle.makedsn('oracle.fiap.com.br', '1521', service_name='ORCL')
+        conexao = cx_Oracle.connect(user="RM559800", password="010285", dsn=dsn_tns)
         return conexao
     except cx_Oracle.DatabaseError as e:
         print(f"Erro ao conectar ao banco de dados Oracle: {e}")
-        exit()
+        traceback.print_exc()  # Mostra o rastreamento completo do erro
+        sys.exit(1)
+
+def verificar_e_criar_tabela(cursor):
+    """
+    Verifica se a tabela 'monitoramento' existe e, caso contrário, cria a tabela no banco de dados Oracle.
+    """
+    try:
+        # Verifica se a tabela existe no esquema atual
+        cursor.execute("""
+            SELECT table_name 
+            FROM user_tables 
+            WHERE table_name = 'MONITORAMENTO'
+        """)
+        tabela_existe = cursor.fetchone()
+        
+        if tabela_existe is None:
+            # A tabela não existe, então cria a tabela
+            cursor.execute("""
+                CREATE TABLE monitoramento (
+                    ndvi_medio FLOAT,
+                    problemas_totais INT,
+                    pragas_totais INT
+                )
+            """)
+            print("Tabela 'monitoramento' criada com sucesso.")
+        else:
+            print("Tabela 'monitoramento' já existe.")
+    except cx_Oracle.DatabaseError as e:
+        print(f"Erro ao verificar/criar a tabela 'monitoramento': {e}")
+        traceback.print_exc()
+        raise
 
 def salvar_dados_banco(conexao, ndvi, problemas, pragas):
     """
@@ -25,15 +57,21 @@ def salvar_dados_banco(conexao, ndvi, problemas, pragas):
     """
     try:
         cursor = conexao.cursor()
-        # Exemplo de inserção de dados na tabela "monitoramento"
+
+        # Verifica se a tabela existe e a cria se necessário
+        verificar_e_criar_tabela(cursor)
+        
+        # Inserção de dados na tabela 'monitoramento'
         cursor.execute("""
             INSERT INTO monitoramento (ndvi_medio, problemas_totais, pragas_totais)
             VALUES (:1, :2, :3)
         """, (float(np.mean(ndvi)), int(np.sum(problemas)), int(np.sum(pragas))))
+        
         conexao.commit()
         print("Dados salvos no banco de dados com sucesso.")
     except cx_Oracle.DatabaseError as e:
         print(f"Erro ao salvar os dados no banco de dados Oracle: {e}")
+        traceback.print_exc()
     finally:
         cursor.close()
 
@@ -51,6 +89,7 @@ def testar_conexao_banco():
         cursor.close()
     except cx_Oracle.DatabaseError as e:
         print(f"Erro ao testar a conexão com o banco de dados Oracle: {e}")
+        traceback.print_exc()
     finally:
         if 'conexao' in locals() and conexao:
             conexao.close()
